@@ -47,6 +47,50 @@ subtest 'Statement' => sub {
       'unsafe spliced in'
     );
   };
+
+  subtest 'to_list' => sub {
+    my @list = Mojo::SQL::Statement->new->parse('SELECT 1')->to_list;
+    is_deeply(\@list, ['SELECT 1'], 'static');
+
+    @list = Mojo::SQL::Statement->new->parse('SELECT ?;', 1)->to_list;
+    is_deeply(\@list, ['SELECT $1;', 1], 'one placeholder');
+
+    @list = Mojo::SQL::Statement->new->parse('SELECT ?, ?, ?;', 1, '2', [3])->to_list;
+    is_deeply(\@list, ['SELECT $1, $2, $3;', 1, '2', [3]], 'three placeholders');
+
+    my $partial = Mojo::SQL::Statement->new->parse('AND two = ? AND three = ?', 'Two', 3);
+    @list = Mojo::SQL::Statement->new->parse('SELECT * FROM foo WHERE one = ? ?', 'One', $partial)->to_list;
+    is_deeply(\@list, ['SELECT * FROM foo WHERE one = $1 AND two = $2 AND three = $3', 'One', 'Two', 3], 'composed');
+
+    my $empty = Mojo::SQL::Statement->new->parse('');
+    @list = Mojo::SQL::Statement->new->parse('SELECT 1 ?', $empty)->to_list;
+    is_deeply(\@list, ['SELECT 1 '], 'empty partial');
+
+    @list = Mojo::SQL::Statement->new->parse('SELECT ?, ?, ?;', 1, '2', [3])->to_list({placeholder => '?'});
+    is_deeply(\@list, ['SELECT ?, ?, ?;', 1, '2', [3]], 'custom placeholder');
+  };
+
+  subtest 'to_array' => sub {
+    my $array = Mojo::SQL::Statement->new->parse('SELECT 1')->to_array;
+    is_deeply($array, ['SELECT 1'], 'static');
+
+    $array = Mojo::SQL::Statement->new->parse('SELECT ?;', 1)->to_array;
+    is_deeply($array, ['SELECT $1;', 1], 'one placeholder');
+
+    $array = Mojo::SQL::Statement->new->parse('SELECT ?, ?, ?;', 1, '2', [3])->to_array;
+    is_deeply($array, ['SELECT $1, $2, $3;', 1, '2', [3]], 'three placeholders');
+
+    my $partial = Mojo::SQL::Statement->new->parse('AND two = ? AND three = ?', 'Two', 3);
+    $array = Mojo::SQL::Statement->new->parse('SELECT * FROM foo WHERE one = ? ?', 'One', $partial)->to_array;
+    is_deeply($array, ['SELECT * FROM foo WHERE one = $1 AND two = $2 AND three = $3', 'One', 'Two', 3], 'composed');
+
+    my $empty = Mojo::SQL::Statement->new->parse('');
+    $array = Mojo::SQL::Statement->new->parse('SELECT 1 ?', $empty)->to_array;
+    is_deeply($array, ['SELECT 1 '], 'empty partial');
+
+    $array = Mojo::SQL::Statement->new->parse('SELECT ?, ?, ?;', 1, '2', [3])->to_array({placeholder => '?'});
+    is_deeply($array, ['SELECT ?, ?, ?;', 1, '2', [3]], 'custom placeholder');
+  };
 };
 
 subtest 'Functions' => sub {

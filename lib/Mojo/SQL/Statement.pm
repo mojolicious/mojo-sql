@@ -51,6 +51,10 @@ sub parse_unsafe ($self, $text, @values) {
 
 sub to_query ($self, $options = {}) { {text => $self->to_string($options), values => $self->values} }
 
+sub to_array ($self, $options = {}) { [$self->to_string($options), @{$self->values}] }
+
+sub to_list ($self, $options = {}) { @{$self->to_array($options)} }
+
 sub to_string ($self, $options = {}) {
   my @query;
   my $placeholder = $options->{placeholder};
@@ -120,6 +124,21 @@ values are spliced in recursively, allowing partial statements to be composed.
 Parse an SQL string where every C<?> slot is replaced literally by the corresponding value. The result has no
 placeholders or bind values; use with care, and make sure to escape values yourself with the appropriate escaping
 functions for your database.
+
+=head2 to_array
+
+  my $array = $stmt->to_array;
+  my $array = $stmt->to_array({placeholder => '?'});
+
+Render the statement to an array reference containing the SQL text and bind values, ready to be passed to a database
+driver. Accepts the same options as L</"to_query">.
+
+=head2 to_list
+
+  my @list = $stmt->to_list;
+  my @list = $stmt->to_list({placeholder => '?'});
+
+Same as L</"to_array"> but returns a list.
 
 =head2 to_query
 
