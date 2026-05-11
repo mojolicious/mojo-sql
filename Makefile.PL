@@ -18,13 +18,13 @@ WriteMakefile(
     no_index       => {directory => ['examples', 't']},
     prereqs        => {runtime   => {requires => {perl => '5.020'}}},
     resources      => {
-      bugtracker => {web => 'https://github.com/mojolicious/perl-sql/issues'},
+      bugtracker => {web => 'https://github.com/mojolicious/mojo-sql/issues'},
       homepage   => 'https://mojolicious.org',
       license    => ['http://www.opensource.org/licenses/mit'],
       repository => {
         type => 'git',
-        url  => 'https://github.com/mojolicious/perl-sql.git',
-        web  => 'https://github.com/mojolicious/perl-sql',
+        url  => 'https://github.com/mojolicious/mojo-sql.git',
+        web  => 'https://github.com/mojolicious/mojo-sql',
       },
       x_IRC => {url => 'irc://irc.libera.chat/#mojo', web => 'https://web.libera.chat/#mojo'}
     },
