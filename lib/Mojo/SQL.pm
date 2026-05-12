@@ -3,7 +3,7 @@ use Mojo::Base 'Exporter', -signatures;
 
 use Mojo::SQL::Statement;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 our @EXPORT_OK = qw(escape_identifier escape_literal sql sql_unsafe);
 
