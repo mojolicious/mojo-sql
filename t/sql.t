@@ -18,6 +18,11 @@ subtest 'Statement' => sub {
     {text => 'SELECT $1, $2, $3;', values => [1, '2', [3]]},
     'three placeholders'
   );
+  is_deeply(
+    Mojo::SQL::Statement->new->parse('SELECT ??, ?;', 1)->to_query,
+    {text => 'SELECT ?, $1;', values => [1]},
+    'escaped question mark'
+  );
 
   my $partial = Mojo::SQL::Statement->new->parse('AND two = ? AND three = ?', 'Two', 3);
   is_deeply(Mojo::SQL::Statement->new->parse('SELECT * FROM foo WHERE one = ? ?', 'One', $partial)->to_query,
@@ -45,6 +50,13 @@ subtest 'Statement' => sub {
       Mojo::SQL::Statement->new->parse('SELECT * ? ORDER BY id', $unsafe)->to_query,
       {text => q{SELECT * FROM bar WHERE baz = 'yada' ORDER BY id}, values => []},
       'unsafe spliced in'
+    );
+
+    $unsafe = Mojo::SQL::Statement->new->parse_unsafe('FROM ?? WHERE id = ?', 23);
+    is_deeply(
+      Mojo::SQL::Statement->new->parse('SELECT * ?', $unsafe)->to_query,
+      {text => 'SELECT * FROM ? WHERE id = 23', values => []},
+      'escaped question mark'
     );
   };
 
@@ -99,6 +111,7 @@ subtest 'Functions' => sub {
   is_deeply sql('SELECT ?;', 1)->to_query, {text => 'SELECT $1;', values => [1]}, 'one placeholder';
   is_deeply sql('SELECT ?, ?, ?;', 1, '2', [3])->to_query, {text => 'SELECT $1, $2, $3;', values => [1, '2', [3]]},
     'three placeholders';
+  is_deeply sql('SELECT ??, ?;', 1)->to_query, {text => 'SELECT ?, $1;', values => [1]}, 'escaped question mark';
 
   my $partial = sql 'AND two = ? AND three = ?', 'Two', 3;
   is_deeply sql('SELECT * FROM foo WHERE one = ? ?', 'One', $partial)->to_query,
@@ -117,6 +130,10 @@ subtest 'Functions' => sub {
     my $unsafe = sql_unsafe q{FROM bar WHERE ? = '?'}, 'baz', 'yada';
     is_deeply sql('SELECT * ? ORDER BY id', $unsafe)->to_query,
       {text => q{SELECT * FROM bar WHERE baz = 'yada' ORDER BY id}, values => []}, 'unsafe spliced in';
+
+    $unsafe = sql_unsafe 'FROM ?? WHERE id = ?', 23;
+    is_deeply sql('SELECT * ?', $unsafe)->to_query, {text => 'SELECT * FROM ? WHERE id = 23', values => []},
+      'escaped question mark';
   };
 };
 

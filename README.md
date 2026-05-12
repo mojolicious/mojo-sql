@@ -13,6 +13,13 @@ my $query = sql('SELECT * FROM users WHERE name = ?', 'sebastian')->to_query;
 To prevent SQL injection attacks, every `?` in the input becomes a placeholder in the generated query, with the
 corresponding value bound to it. Partial statements can even be used recursively to build more complex queries.
 
+Literal question marks can be escaped with `??`.
+
+```perl
+# {text => 'SELECT ? AS literal, $1 AS bound', values => ['value']}
+my $query = sql('SELECT ?? AS literal, ? AS bound', 'value')->to_query;
+```
+
 ```perl
 my $role    = 'admin';
 my $partial = sql('AND role = ?', $role);

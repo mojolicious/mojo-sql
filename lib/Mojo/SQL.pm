@@ -3,7 +3,7 @@ use Mojo::Base 'Exporter', -signatures;
 
 use Mojo::SQL::Statement;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 our @EXPORT_OK = qw(escape_identifier escape_literal sql sql_unsafe);
 
@@ -45,6 +45,8 @@ Mojo::SQL - Safely generate and compose SQL statements
 L<Mojo::SQL> safely generates and composes SQL statements. To prevent SQL injection attacks, every C<?> in the input
 becomes a placeholder in the generated query, with the corresponding value bound to it. Partial statements can be
 composed recursively to build more complex queries.
+
+Literal question marks can be escaped with C<??>.
 
   use Mojo::SQL qw(sql);
 
@@ -101,14 +103,14 @@ Escape a literal (only the PostgreSQL format is currently supported).
 
 Create a new L<Mojo::SQL::Statement> from an SQL string. Each C<?> in the string becomes a placeholder, and the
 corresponding value is bound to it. L<Mojo::SQL::Statement> values are spliced in recursively, so partial statements
-can be composed to build more complex queries.
+can be composed to build more complex queries. Literal question marks can be escaped with C<??>.
 
 =head2 sql_unsafe
 
   my $stmt = sql_unsafe 'SELECT * FROM users WHERE name = ?', 'sebastian';
 
 Create a new L<Mojo::SQL::Statement> without safe placeholders. Each C<?> in the string is replaced literally by the
-corresponding value. Use with care.
+corresponding value. Literal question marks can be escaped with C<??>. Use with care.
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -3,12 +3,17 @@ use Mojo::Base -base, -signatures;
 
 use Scalar::Util qw(blessed);
 
-has parts  => sub { [] };
-has values => sub { [] };
+has [qw(parts values)] => sub { [] };
 
 sub parse ($self, $text, @values) {
+  my $escape = "\0";
+  $escape .= "\0" while index($text, $escape) >= 0;
+  $text =~ s/\?\?/$escape/g;
+
   my @text_parts = split /\?/, $text, -1;
   @text_parts = ('') unless @text_parts;
+
+  s/\Q$escape\E/?/g for @text_parts;
 
   my (@merged_parts, @merged_values);
   my $merge_next = 0;
@@ -34,11 +39,18 @@ sub parse ($self, $text, @values) {
 
   $self->{parts}  = \@merged_parts;
   $self->{values} = \@merged_values;
+
   return $self;
 }
 
 sub parse_unsafe ($self, $text, @values) {
+  my $escape = "\0";
+  $escape .= "\0" while index($text, $escape) >= 0;
+  $text =~ s/\?\?/$escape/g;
+
   my @text_parts = split /\?/, $text, -1;
+  s/\Q$escape\E/?/g for @text_parts;
+
   my @merged;
   for my $i (0 .. $#text_parts) {
     push @merged, $text_parts[$i];
@@ -46,6 +58,7 @@ sub parse_unsafe ($self, $text, @values) {
   }
   $self->{parts}  = [join '', @merged];
   $self->{values} = [];
+
   return $self;
 }
 
@@ -63,6 +76,7 @@ sub to_string ($self, $options = {}) {
     push @query, $parts->[$i - 1];
     push @query, defined $placeholder ? $placeholder : "\$$i" if defined $parts->[$i];
   }
+
   return join '', @query;
 }
 
@@ -114,7 +128,8 @@ L<Mojo::SQL::Statement> inherits all methods from L<Mojo::Base> and implements t
   $stmt = $stmt->parse('SELECT * FROM users WHERE name = ?', 'sebastian');
 
 Parse an SQL string with C<?> placeholders and bind values into L</"parts"> and L</"values">. L<Mojo::SQL::Statement>
-values are spliced in recursively, allowing partial statements to be composed.
+values are spliced in recursively, allowing partial statements to be composed. Literal question marks can be escaped
+with C<??>.
 
 =head2 parse_unsafe
 
@@ -123,7 +138,7 @@ values are spliced in recursively, allowing partial statements to be composed.
 
 Parse an SQL string where every C<?> slot is replaced literally by the corresponding value. The result has no
 placeholders or bind values; use with care, and make sure to escape values yourself with the appropriate escaping
-functions for your database.
+functions for your database. Literal question marks can be escaped with C<??>.
 
 =head2 to_array
 
